@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Registrar Paciente{% endblock %}
+{% block page_title %}<i class="bi bi-person-plus-fill me-2"></i>Registrar Llegada de Paciente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="POST" id="formRegistro">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <h5 class="card-section-title"><i class="bi bi-person me-2"></i>Datos del Paciente</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="ci" class="form-label">Cédula de Identidad *</label>
+                            <input type="text" class="form-control" id="ci" name="ci" required maxlength="20" minlength="5"
+                                   placeholder="Ej: 1234567 LP">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo"
+                                   required maxlength="150" placeholder="Nombres y apellidos">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sexo" class="form-label">Sexo *</label>
+                            <select class="form-select" id="sexo" name="sexo" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contacto" class="form-label">Número de Contacto *</label>
+                            <input type="tel" class="form-control" id="contacto" name="contacto"
+                                   required maxlength="15" placeholder="Ej: 71234567">
+                        </div>
+                    </div>
+
+                    <h5 class="card-section-title"><i class="bi bi-clipboard2-pulse me-2"></i>Motivo de Consulta</h5>
+                    <div class="mb-4">
+                        <textarea class="form-control" id="motivo_consulta" name="motivo_consulta"
+                                  rows="3" required placeholder="Describa el motivo de la visita del paciente..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('recepcion.lista_fichas') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-lg me-2"></i>Crear Ficha y Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Control{% endblock %}
+{% block page_title %}Panel de Control{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Tarjeta de bienvenida -->
+    <div class="col-12">
+        <div class="card card-welcome">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h3 class="mb-1">Bienvenido/a, {{ current_user.nombre_completo }}</h3>
+                        <p class="mb-0 opacity-75">{{ current_user.nombre_rol }} | Hospital del Norte</p>
+                    </div>
+                    <div class="welcome-icon">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos según rol -->
+<div class="row g-4">
+    {% if current_user.tiene_rol('Recepcionista', 'Administrador') %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('recepcion.registrar_paciente') }}" class="card card-action card-action-blue">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <h5>Registrar Paciente</h5>
+                <p class="text-muted mb-0">Crear nueva ficha de admisión</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('recepcion.lista_fichas') }}" class="card card-action card-action-green">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-card-list"></i>
+                </div>
+                <h5>Fichas del Día</h5>
+                <p class="text-muted mb-0">Ver fichas registradas hoy</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if current_user.tiene_rol('Médico de Triage', 'Administrador') %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('triage.pendientes') }}" class="card card-action card-action-orange">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                </div>
+                <h5>Triage Pendientes</h5>
+                <p class="text-muted mb-0">Evaluar pacientes en espera</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if current_user.tiene_rol('Médico Tratante', 'Administrador') %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('atencion.cola') }}" class="card card-action card-action-red">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h5>Cola de Atención</h5>
+                <p class="text-muted mb-0">Ver pacientes clasificados</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if current_user.tiene_rol('Director', 'Administrador') %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('reportes.dashboard') }}" class="card card-action card-action-purple">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                </div>
+                <h5>Dashboard</h5>
+                <p class="text-muted mb-0">Estadísticas en tiempo real</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('reportes.generar_reporte') }}" class="card card-action card-action-teal">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                </div>
+                <h5>Generar Reporte</h5>
+                <p class="text-muted mb-0">Reportes por rango de fechas</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if current_user.tiene_rol('Administrador') %}
+    <div class="col-md-6 col-lg-4">
+        <a href="{{ url_for('admin.listar_usuarios') }}" class="card card-action card-action-gray">
+            <div class="card-body text-center py-4">
+                <div class="card-action-icon">
+                    <i class="bi bi-person-gear"></i>
+                </div>
+                <h5>Gestión de Usuarios</h5>
+                <p class="text-muted mb-0">Administrar cuentas del personal</p>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

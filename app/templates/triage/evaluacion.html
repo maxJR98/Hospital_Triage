@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Evaluación de Triage{% endblock %}
+{% block page_title %}<i class="bi bi-clipboard2-pulse-fill me-2"></i>Evaluación de Triage{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Info del paciente -->
+    <div class="col-12">
+        <div class="card card-info-patient">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3"><strong>Ficha:</strong> {{ ficha.numero_ficha }}</div>
+                    <div class="col-md-4"><strong>Paciente:</strong> {{ ficha.paciente.nombre_completo }}</div>
+                    <div class="col-md-2"><strong>CI:</strong> {{ ficha.paciente.ci }}</div>
+                    <div class="col-md-3"><strong>Edad:</strong> {{ ficha.paciente.edad }} años ({{ ficha.paciente.sexo }})</div>
+                </div>
+                <div class="mt-2"><strong>Motivo:</strong> {{ ficha.motivo_consulta }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="POST" id="formTriage">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="nivel_sugerido" id="nivel_sugerido" value="P5">
+
+                    <h5 class="card-section-title"><i class="bi bi-activity me-2"></i>Signos Vitales</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label">P. Sistólica (mmHg)</label>
+                            <input type="number" class="form-control signo-vital" name="presion_sistolica" id="presion_sistolica" min="40" max="300" placeholder="120">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">P. Diastólica (mmHg)</label>
+                            <input type="number" class="form-control signo-vital" name="presion_diastolica" id="presion_diastolica" min="20" max="200" placeholder="80">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Frec. Cardíaca (lpm)</label>
+                            <input type="number" class="form-control signo-vital" name="frecuencia_cardiaca" id="frecuencia_cardiaca" min="20" max="250" placeholder="80">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Frec. Respiratoria (rpm)</label>
+                            <input type="number" class="form-control signo-vital" name="frecuencia_respiratoria" id="frecuencia_respiratoria" min="5" max="60" placeholder="16">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Temperatura (°C)</label>
+                            <input type="number" class="form-control signo-vital" name="temperatura" id="temperatura" min="30" max="45" step="0.1" placeholder="36.5">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sat. Oxígeno (%)</label>
+                            <input type="number" class="form-control signo-vital" name="saturacion_oxigeno" id="saturacion_oxigeno" min="50" max="100" placeholder="98">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nivel de Dolor (0-10)</label>
+                            <input type="range" class="form-range mt-2 signo-vital" name="nivel_dolor" id="nivel_dolor" min="0" max="10" value="0" oninput="document.getElementById('dolor_valor').textContent=this.value">
+                            <div class="text-center"><span id="dolor_valor" class="fw-bold">0</span>/10</div>
+                        </div>
+                    </div>
+
+                    <h5 class="card-section-title"><i class="bi bi-list-check me-2"></i>Síntomas</h5>
+                    <div class="row g-2 mb-4">
+                        {% for s in sintomas %}
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="sintomas" value="{{ s.id }}" id="sint_{{ s.id }}">
+                                <label class="form-check-label" for="sint_{{ s.id }}">{{ s.nombre }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h5 class="card-section-title"><i class="bi bi-chat-text me-2"></i>Observaciones Clínicas</h5>
+                    <div class="mb-4">
+                        <textarea class="form-control" name="observaciones" rows="2" placeholder="Observaciones adicionales (opcional)..."></textarea>
+                    </div>
+
+                    <!-- Confirmación de prioridad -->
+                    <h5 class="card-section-title"><i class="bi bi-shield-check me-2"></i>Confirmación de Prioridad</h5>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nivel Confirmado por el Médico *</label>
+                            <select class="form-select form-select-lg" name="nivel_confirmado" id="nivel_confirmado" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="P1">P1 - Resucitación (Rojo)</option>
+                                <option value="P2">P2 - Emergencia (Naranja)</option>
+                                <option value="P3">P3 - Urgente (Amarillo)</option>
+                                <option value="P4">P4 - Semi-urgente (Verde)</option>
+                                <option value="P5">P5 - No urgente (Azul)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4" id="justificacion_container" style="display:none">
+                        <label class="form-label text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Justificación de Modificación (obligatoria, mín. 20 caracteres)</label>
+                        <textarea class="form-control" name="justificacion" id="justificacion" rows="2" minlength="20"
+                                  placeholder="Explique por qué modifica el nivel sugerido por el sistema..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('triage.pendientes') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-lg me-2"></i>Confirmar Triage
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de sugerencia -->
+    <div class="col-lg-4">
+        <div class="card card-sticky">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="bi bi-cpu me-2"></i>Módulo Inteligente</h6>
+            </div>
+            <div class="card-body text-center" id="panel_sugerencia">
+                <p class="text-muted mb-3">Ingrese los signos vitales para obtener la sugerencia automática</p>
+                <button type="button" class="btn btn-dark" id="btnEvaluar">
+                    <i class="bi bi-lightning-charge-fill me-2"></i>Evaluar Signos Vitales
+                </button>
+
+                <div id="resultado_sugerencia" class="mt-3" style="display:none">
+                    <div class="sugerencia-nivel" id="sugerencia_badge"></div>
+                    <h4 id="sugerencia_nombre" class="mt-2"></h4>
+                    <div id="criterios_lista" class="text-start mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Evaluación inteligente de triage via AJAX (RF3.2)
+document.getElementById('btnEvaluar').addEventListener('click', function() {
+    const datos = {
+        presion_sistolica: parseFloat(document.getElementById('presion_sistolica').value) || null,
+        presion_diastolica: parseFloat(document.getElementById('presion_diastolica').value) || null,
+        frecuencia_cardiaca: parseFloat(document.getElementById('frecuencia_cardiaca').value) || null,
+        frecuencia_respiratoria: parseFloat(document.getElementById('frecuencia_respiratoria').value) || null,
+        temperatura: parseFloat(document.getElementById('temperatura').value) || null,
+        saturacion_oxigeno: parseFloat(document.getElementById('saturacion_oxigeno').value) || null,
+        nivel_dolor: parseInt(document.getElementById('nivel_dolor').value) || 0,
+    };
+
+    fetch('{{ url_for("triage.obtener_sugerencia", ficha_id=ficha.id) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('resultado_sugerencia').style.display = 'block';
+        document.getElementById('nivel_sugerido').value = data.nivel_sugerido;
+
+        const badge = document.getElementById('sugerencia_badge');
+        badge.textContent = data.nivel_sugerido;
+        badge.style.backgroundColor = data.color_prioridad;
+
+        document.getElementById('sugerencia_nombre').textContent = data.nombre_prioridad;
+
+        const lista = document.getElementById('criterios_lista');
+        if (data.criterios_activados.length > 0) {
+            lista.innerHTML = '<h6>Criterios activados:</h6><ul class="list-unstyled">' +
+                data.criterios_activados.map(c =>
+                    `<li class="mb-1"><i class="bi bi-exclamation-circle text-warning me-1"></i><strong>${c.parametro_nombre}</strong>: ${c.valor_paciente} (${c.descripcion})</li>`
+                ).join('') + '</ul>';
+        } else {
+            lista.innerHTML = '<p class="text-muted">No se activaron criterios de alerta.</p>';
+        }
+
+        // Auto-seleccionar nivel sugerido
+        document.getElementById('nivel_confirmado').value = data.nivel_sugerido;
+    });
+});
+
+// Mostrar justificación si se modifica el nivel (RF3.3)
+document.getElementById('nivel_confirmado').addEventListener('change', function() {
+    const sugerido = document.getElementById('nivel_sugerido').value;
+    const container = document.getElementById('justificacion_container');
+    const textarea = document.getElementById('justificacion');
+    if (this.value && this.value !== sugerido) {
+        container.style.display = 'block';
+        textarea.required = true;
+    } else {
+        container.style.display = 'none';
+        textarea.required = false;
+    }
+});
+</script>
+{% endblock %}

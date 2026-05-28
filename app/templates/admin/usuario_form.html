@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Nuevo Usuario' if modo == 'crear' else 'Editar Usuario' }}{% endblock %}
+{% block page_title %}<i class="bi bi-person-{{ 'plus' if modo == 'crear' else 'gear' }} me-2"></i>{{ 'Nuevo Usuario' if modo == 'crear' else 'Editar Usuario' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="POST" id="formUsuario">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                            <input type="text" class="form-control" id="nombre_completo" name="nombre_completo"
+                                   value="{{ usuario.nombre_completo if modo == 'editar' else '' }}" required maxlength="150" minlength="3">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ci" class="form-label">Cédula de Identidad *</label>
+                            <input type="text" class="form-control" id="ci" name="ci"
+                                   value="{{ usuario.ci if modo == 'editar' else '' }}" required maxlength="15"
+                                   {{ 'readonly' if modo == 'editar' else '' }}>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Correo Electrónico Institucional *</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ usuario.email if modo == 'editar' else '' }}" required maxlength="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="rol_id" class="form-label">Rol *</label>
+                            <select class="form-select" id="rol_id" name="rol_id" required>
+                                <option value="">Seleccionar rol...</option>
+                                {% for r in roles %}
+                                <option value="{{ r.id }}" {{ 'selected' if modo == 'editar' and usuario.rol_id == r.id else '' }}>
+                                    {{ r.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">
+                                Contraseña {{ '*' if modo == 'crear' else '(dejar vacío para no cambiar)' }}
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   {{ 'required' if modo == 'crear' else '' }} minlength="8">
+                            <div class="form-text">Mínimo 8 caracteres</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>{{ 'Crear Usuario' if modo == 'crear' else 'Guardar Cambios' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

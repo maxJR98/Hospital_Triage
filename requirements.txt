@@ -1,0 +1,32 @@
+# =====================================================
+# Sistema Inteligente de Triage - Hospital del Norte
+# Dependencias del proyecto
+# =====================================================
+
+# --- Core ---
+Flask==3.1.1
+python-dotenv==1.1.0
+Werkzeug==3.1.3
+
+# --- Base de Datos ---
+Flask-SQLAlchemy==3.1.1
+PyMySQL==1.1.1
+cryptography==44.0.0
+
+# --- Autenticación y Seguridad ---
+Flask-Login==0.6.3
+Flask-WTF==1.2.2
+bcrypt==4.3.0
+
+# --- Tiempo Real (WebSocket) ---
+Flask-SocketIO==5.5.1
+eventlet==0.37.0
+
+# --- Correo Electrónico ---
+Flask-Mail==0.10.0
+
+# --- Reportes ---
+reportlab==4.4.0
+
+# --- Utilidades ---
+openpyxl==3.1.5

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Operativo{% endblock %}
+{% block page_title %}<i class="bi bi-bar-chart-line-fill me-2"></i>Dashboard Operativo{% endblock %}
+
+{% block content %}
+<!-- KPIs -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <i class="bi bi-people stat-icon text-primary"></i>
+                <h2 id="kpi_total" class="stat-number">--</h2>
+                <p class="text-muted mb-0">Pacientes Hoy</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <i class="bi bi-clock stat-icon text-warning"></i>
+                <h2 id="kpi_espera" class="stat-number">--</h2>
+                <p class="text-muted mb-0">En Espera</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle stat-icon text-success"></i>
+                <h2 id="kpi_atendidos" class="stat-number">--</h2>
+                <p class="text-muted mb-0">Atendidos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <i class="bi bi-stopwatch stat-icon text-info"></i>
+                <h2 id="kpi_promedio" class="stat-number">--</h2>
+                <p class="text-muted mb-0">Tiempo Promedio (min)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Distribución por prioridad -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0">Distribución por Prioridad</h6></div>
+            <div class="card-body">
+                <div id="chart_prioridad"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Alertas activas -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between">
+                <h6 class="mb-0">Resumen del Día</h6>
+                <span class="badge bg-danger" id="badge_alertas">0 alertas</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Abandonos:</strong> <span id="kpi_abandonos">--</span>
+                </div>
+                <div class="mb-3">
+                    <strong>En Atención:</strong> <span id="kpi_en_atencion">--</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Alertas Activas:</strong> <span id="kpi_alertas" class="text-danger fw-bold">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function cargarDashboard() {
+    fetch('{{ url_for("reportes.dashboard_datos") }}')
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('kpi_total').textContent = data.total_hoy;
+        document.getElementById('kpi_espera').textContent = data.en_espera;
+        document.getElementById('kpi_atendidos').textContent = data.finalizados;
+        document.getElementById('kpi_promedio').textContent = data.promedio_espera_min;
+        document.getElementById('kpi_abandonos').textContent = data.abandonaron;
+        document.getElementById('kpi_en_atencion').textContent = data.en_atencion;
+        document.getElementById('kpi_alertas').textContent = data.alertas_activas;
+        document.getElementById('badge_alertas').textContent = data.alertas_activas + ' alertas';
+
+        // Gráfico de barras simple con CSS
+        const chart = document.getElementById('chart_prioridad');
+        const niveles = [
+            { key: 'P1', name: 'Resucitación', color: '#DC2626' },
+            { key: 'P2', name: 'Emergencia', color: '#F97316' },
+            { key: 'P3', name: 'Urgente', color: '#EAB308' },
+            { key: 'P4', name: 'Semi-urgente', color: '#22C55E' },
+            { key: 'P5', name: 'No urgente', color: '#3B82F6' },
+        ];
+        const maxVal = Math.max(...Object.values(data.distribucion), 1);
+        chart.innerHTML = niveles.map(n => {
+            const val = data.distribucion[n.key] || 0;
+            const pct = (val / maxVal) * 100;
+            return `<div class="d-flex align-items-center mb-2">
+                <span class="badge-prioridad me-2" style="background-color:${n.color}">${n.key}</span>
+                <div class="flex-grow-1">
+                    <div class="progress" style="height:24px">
+                        <div class="progress-bar" style="width:${pct}%;background-color:${n.color}">${val}</div>
+                    </div>
+                </div>
+                <small class="ms-2 text-muted">${n.name}</small>
+            </div>`;
+        }).join('');
+    });
+}
+
+cargarDashboard();
+setInterval(cargarDashboard, 30000);
+</script>
+{% endblock %}

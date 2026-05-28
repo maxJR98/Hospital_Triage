@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Cola de Atención{% endblock %}
+{% block page_title %}<i class="bi bi-people-fill me-2"></i>Cola de Atención en Tiempo Real{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Contadores -->
+    <div class="col-md-4">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <h2 id="stat_espera" class="stat-number text-warning">0</h2>
+                <p class="text-muted mb-0">En Espera</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <h2 id="stat_atencion" class="stat-number text-primary">0</h2>
+                <p class="text-muted mb-0">En Atención</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stat">
+            <div class="card-body text-center">
+                <h2 id="stat_refresh" class="stat-number text-muted">30</h2>
+                <p class="text-muted mb-0">Actualización en (s)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cola de espera -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Pacientes en Espera</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="cargarCola()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Prioridad</th>
+                                <th>Ficha</th>
+                                <th>Paciente</th>
+                                <th>Motivo</th>
+                                <th>Espera</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody_espera">
+                            <tr><td colspan="6" class="text-center py-3 text-muted">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- En atención -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person-check me-2"></i>En Atención Actualmente</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Prioridad</th>
+                                <th>Ficha</th>
+                                <th>Paciente</th>
+                                <th>Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody_atencion">
+                            <tr><td colspan="4" class="text-center py-3 text-muted">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio para alertas -->
+<audio id="audioAlerta" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JkZqTi4J9eX2CiI+UlI+KgXl0dHqBiZCUlJCKgXl0c3qAiI+Tko6IgHdzc3mAho2SkI2HgHdzc3l/ho2RkI2GgHdzc3l/hoyQj4yFf3Zyc3h/hYuPjouFfnVyc3h+hIuOjYqEfnVxcnd+hIqNjImDfXRxcnd9g4mMi4iCfHRxcnZ9goiLioeBe3NwcXZ8gYeKiYaAe3JwcHV7gIaIh4V/enJvb3R7f4WIhoR+eXFvb3N6foSHhYN9eHBubnJ5fYOGhIF8d3BubnJ5fYKFg4B7dnBtbXF4fIGEgoB6dW9tbXF3e4CDgX94dG5sbHB3e3+CgH53c25sbHB2en6Bf352cm1ra292enyCf312cm1ra291eX2AfnxzbW5" type="audio/wav">
+</audio>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let countdown = 30;
+const CSRF = '{{ csrf_token() }}';
+
+function cargarCola() {
+    fetch('{{ url_for("atencion.cola_datos") }}')
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('stat_espera').textContent = data.total_espera;
+        document.getElementById('stat_atencion').textContent = data.total_atencion;
+
+        // Renderizar cola de espera
+        const tbEspera = document.getElementById('tbody_espera');
+        if (data.en_espera.length === 0) {
+            tbEspera.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted"><i class="bi bi-check-circle me-2"></i>No hay pacientes en espera</td></tr>';
+        } else {
+            let hayAlerta = false;
+            tbEspera.innerHTML = data.en_espera.map(f => {
+                if (f.alerta) hayAlerta = true;
+                return `<tr class="${f.alerta ? 'table-danger alerta-fila' : ''}">
+                    <td><span class="badge-prioridad" style="background-color:${f.color}">${f.prioridad}</span></td>
+                    <td><strong>${f.numero_ficha}</strong></td>
+                    <td>${f.paciente_nombre}</td>
+                    <td class="text-truncate" style="max-width:200px">${f.motivo}</td>
+                    <td><span class="fw-bold ${f.alerta ? 'text-danger' : ''}">${f.minutos_espera} min ${f.alerta ? '⚠️' : ''}</span></td>
+                    <td class="text-center">
+                        <form method="POST" action="/atencion/llamar/${f.id}" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="${CSRF}">
+                            <button class="btn btn-sm btn-success"><i class="bi bi-telephone-fill me-1"></i>Llamar</button>
+                        </form>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            if (hayAlerta) {
+                try { document.getElementById('audioAlerta').play(); } catch(e) {}
+            }
+        }
+
+        // Renderizar en atención
+        const tbAtencion = document.getElementById('tbody_atencion');
+        if (data.en_atencion.length === 0) {
+            tbAtencion.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Ningún paciente en atención</td></tr>';
+        } else {
+            tbAtencion.innerHTML = data.en_atencion.map(f =>
+                `<tr>
+                    <td><span class="badge-prioridad" style="background-color:${f.color}">${f.prioridad}</span></td>
+                    <td><strong>${f.numero_ficha}</strong></td>
+                    <td>${f.paciente_nombre}</td>
+                    <td>${f.minutos_espera} min</td>
+                </tr>`
+            ).join('');
+        }
+
+        countdown = 30;
+    });
+}
+
+// Auto-actualización cada 30 segundos (RF4.1)
+setInterval(() => {
+    countdown--;
+    document.getElementById('stat_refresh').textContent = countdown;
+    if (countdown <= 0) {
+        cargarCola();
+    }
+}, 1000);
+
+// Carga inicial
+cargarCola();
+</script>
+{% endblock %}

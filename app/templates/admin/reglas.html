@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Reglas Clínicas{% endblock %}
+{% block page_title %}<i class="bi bi-sliders me-2"></i>Reglas Clínicas del Módulo Inteligente{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">{{ reglas|length }} regla(s) configurada(s)</p>
+    <a href="{{ url_for('admin.crear_regla') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Nueva Regla
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Operador</th>
+                        <th>Umbral</th>
+                        <th>Prioridad</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reglas %}
+                    <tr class="{{ '' if r.activo else 'opacity-50' }}">
+                        <td><strong>{{ r.parametro | replace('_', ' ') | title }}</strong></td>
+                        <td><code>{{ r.operador }}</code></td>
+                        <td>{{ r.valor_umbral }}</td>
+                        <td><span class="badge-prioridad" style="background-color:{{ {'P1':'#DC2626','P2':'#F97316','P3':'#EAB308','P4':'#22C55E','P5':'#3B82F6'}[r.nivel_prioridad] }}">{{ r.nivel_prioridad }}</span></td>
+                        <td>{{ r.descripcion or '—' }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if r.activo else 'secondary' }}-subtle text-{{ 'success' if r.activo else 'secondary' }}">
+                                {{ 'Activa' if r.activo else 'Inactiva' }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <form method="POST" action="{{ url_for('admin.toggle_regla', regla_id=r.id) }}" style="display:inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-{{ 'danger' if r.activo else 'success' }}">
+                                    <i class="bi bi-{{ 'pause' if r.activo else 'play' }}"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

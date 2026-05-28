@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Recuperar Contraseña{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="bi bi-key-fill"></i>
+            </div>
+            <h2 class="auth-title">Recuperar Contraseña</h2>
+            <p class="auth-subtitle">Ingrese su correo institucional para recibir un enlace de restablecimiento</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.recuperar_password') }}" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email"
+                       placeholder="correo@hospitalnorte.bo" required autofocus>
+                <label for="email"><i class="bi bi-envelope me-2"></i>Correo Electrónico Institucional</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 auth-btn">
+                <i class="bi bi-send me-2"></i>Enviar Enlace
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.login') }}" class="auth-link">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+                </a>
+            </div>
+        </form>
+    </div>
+    <div class="auth-bg-decoration">
+        <div class="auth-bg-circle auth-bg-circle-1"></div>
+        <div class="auth-bg-circle auth-bg-circle-2"></div>
+    </div>
+</div>
+{% endblock %}

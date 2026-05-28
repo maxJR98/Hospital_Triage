@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Fichas del Día{% endblock %}
+{% block page_title %}<i class="bi bi-card-list me-2"></i>Fichas del Día{% endblock %}
+
+{% block content %}
+<!-- Barra de búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" class="form-control" name="buscar" value="{{ busqueda }}"
+                   placeholder="Buscar por número de ficha, nombre o CI...">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+            {% if busqueda %}
+            <a href="{{ url_for('recepcion.lista_fichas') }}" class="btn btn-outline-secondary">Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Ficha</th>
+                        <th>Hora</th>
+                        <th>Paciente</th>
+                        <th>CI</th>
+                        <th>Motivo</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Espera</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fichas %}
+                    <tr>
+                        <td><strong>{{ f.numero_ficha }}</strong></td>
+                        <td>{{ f.fecha_hora_llegada.strftime('%H:%M') }}</td>
+                        <td>{{ f.paciente.nombre_completo }}</td>
+                        <td>{{ f.paciente.ci }}</td>
+                        <td class="text-truncate" style="max-width:200px" title="{{ f.motivo_consulta }}">{{ f.motivo_consulta }}</td>
+                        <td>
+                            {% if f.prioridad_final %}
+                            <span class="badge-prioridad" style="background-color:{{ f.color_prioridad }}">{{ f.prioridad_final }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if f.estado == 'En espera' else 'info' if f.estado == 'En triage' else 'primary' if f.estado == 'En atención' else 'success' if f.estado == 'Finalizado' else 'secondary' }}-subtle text-{{ 'warning' if f.estado == 'En espera' else 'info' if f.estado == 'En triage' else 'primary' if f.estado == 'En atención' else 'success' if f.estado == 'Finalizado' else 'secondary' }}">
+                                {{ f.estado }}
+                            </span>
+                        </td>
+                        <td>{{ f.minutos_espera }} min</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not fichas %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox" style="font-size:2rem"></i>
+                            <p class="mt-2 mb-0">{{ 'No se encontraron resultados' if busqueda else 'No hay fichas registradas hoy' }}</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

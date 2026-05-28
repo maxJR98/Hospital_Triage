@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Pendientes de Triage{% endblock %}
+{% block page_title %}<i class="bi bi-clipboard2-pulse-fill me-2"></i>Pacientes Pendientes de Triage{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Ficha</th>
+                        <th>Hora</th>
+                        <th>Paciente</th>
+                        <th>Edad</th>
+                        <th>Motivo</th>
+                        <th>Espera</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fichas %}
+                    <tr>
+                        <td><strong>{{ f.numero_ficha }}</strong></td>
+                        <td>{{ f.fecha_hora_llegada.strftime('%H:%M') }}</td>
+                        <td>{{ f.paciente.nombre_completo }}</td>
+                        <td>{{ f.paciente.edad }} años</td>
+                        <td class="text-truncate" style="max-width:250px">{{ f.motivo_consulta }}</td>
+                        <td>
+                            <span class="fw-bold {{ 'text-danger' if f.minutos_espera > 30 else 'text-warning' if f.minutos_espera > 15 else '' }}">
+                                {{ f.minutos_espera }} min
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('triage.evaluar', ficha_id=f.id) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-clipboard2-pulse me-1"></i>Evaluar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not fichas %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="bi bi-check-circle" style="font-size:2rem"></i>
+                            <p class="mt-2 mb-0">No hay pacientes pendientes de triage</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

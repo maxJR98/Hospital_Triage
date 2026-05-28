@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo y título -->
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+            <h2 class="auth-title">Hospital del Norte</h2>
+            <p class="auth-subtitle">Sistema Inteligente de Triage</p>
+        </div>
+
+        <!-- Formulario de login -->
+        <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form" id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email"
+                       placeholder="correo@hospitalnorte.bo" required autofocus>
+                <label for="email"><i class="bi bi-envelope me-2"></i>Correo Electrónico</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="password" name="password"
+                       placeholder="Contraseña" required minlength="8">
+                <label for="password"><i class="bi bi-lock me-2"></i>Contraseña</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 auth-btn" id="btnLogin">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.recuperar_password') }}" class="auth-link">
+                    <i class="bi bi-key me-1"></i>¿Olvidó su contraseña?
+                </a>
+            </div>
+        </form>
+
+        <div class="auth-footer">
+            <small>Sistema de uso exclusivo del personal autorizado</small>
+            <small>Hospital del Norte - La Paz, El Alto</small>
+        </div>
+    </div>
+
+    <!-- Decoración de fondo -->
+    <div class="auth-bg-decoration">
+        <div class="auth-bg-circle auth-bg-circle-1"></div>
+        <div class="auth-bg-circle auth-bg-circle-2"></div>
+        <div class="auth-bg-circle auth-bg-circle-3"></div>
+    </div>
+</div>
+{% endblock %}

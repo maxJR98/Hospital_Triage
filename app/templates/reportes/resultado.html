@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Resultado del Reporte{% endblock %}
+{% block page_title %}<i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Reporte: {{ fecha_inicio }} a {{ fecha_fin }}{% endblock %}
+
+{% block content %}
+<!-- Resumen -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat"><div class="card-body text-center">
+            <h2 class="stat-number text-primary">{{ stats.total }}</h2>
+            <p class="text-muted mb-0">Total Pacientes</p>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat"><div class="card-body text-center">
+            <h2 class="stat-number text-success">{{ stats.atendidos }}</h2>
+            <p class="text-muted mb-0">Atendidos</p>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat"><div class="card-body text-center">
+            <h2 class="stat-number text-danger">{{ stats.abandonaron }}</h2>
+            <p class="text-muted mb-0">Abandonaron</p>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-stat"><div class="card-body text-center">
+            <h2 class="stat-number text-info">{{ stats.promedio_espera_min }}</h2>
+            <p class="text-muted mb-0">Tiempo Promedio (min)</p>
+        </div></div>
+    </div>
+</div>
+
+<!-- Por prioridad -->
+<div class="card mb-4">
+    <div class="card-header"><h6 class="mb-0">Distribución por Prioridad</h6></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>Nivel</th><th>Total</th><th>Tiempo Promedio (min)</th></tr></thead>
+                <tbody>
+                    {% for nivel, data in stats.por_prioridad.items() %}
+                    <tr><td><span class="badge-prioridad" style="background-color:{{ {'P1':'#DC2626','P2':'#F97316','P3':'#EAB308','P4':'#22C55E','P5':'#3B82F6'}[nivel] }}">{{ nivel }}</span></td><td>{{ data.total }}</td><td>{{ data.promedio_min }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Detalle -->
+<div class="card">
+    <div class="card-header"><h6 class="mb-0">Detalle de Fichas ({{ fichas|length }})</h6></div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>Ficha</th><th>Fecha</th><th>Paciente</th><th>Prioridad</th><th>Estado</th><th>Tiempo (min)</th></tr></thead>
+                <tbody>
+                    {% for f in fichas %}
+                    <tr>
+                        <td>{{ f.numero_ficha }}</td>
+                        <td>{{ f.fecha_hora_llegada.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ f.paciente.nombre_completo }}</td>
+                        <td>{% if f.prioridad_final %}<span class="badge-prioridad" style="background-color:{{ f.color_prioridad }}">{{ f.prioridad_final }}</span>{% else %}—{% endif %}</td>
+                        <td>{{ f.estado }}</td>
+                        <td>{{ (f.tiempo_total_segundos // 60) if f.tiempo_total_segundos else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('reportes.generar_reporte') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Nuevo Reporte</a>
+</div>
+{% endblock %}
